@@ -1,0 +1,8 @@
+
+frame="buttonless"
+
+[font]
+    normal = { family = "Maple Mono NF CN", style = "Italic" }
+    size = 16
+
+

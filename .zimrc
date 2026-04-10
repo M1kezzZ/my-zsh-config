@@ -23,23 +23,11 @@ zmodule utility
 # Prompt
 #
 
-# Exposes to prompts how long the last command took to execute, used by asciiship.
-zmodule duration-info
-# Exposes git repository status information to prompts, used by asciiship.
-zmodule git-info
-# A heavily reduced, ASCII-only version of the Spaceship and Starship prompts.
-zmodule asciiship
-
-#
-# Completion
-#
-
 # Additional completion definitions for Zsh.
-# zmodule zsh-users/zsh-completions --fpath src
+zmodule zsh-users/zsh-completions --fpath src
 # Enables and configures smart and extensive tab completion.
 # completion must be sourced after all modules that add completion definitions.
-# zmodule completion
-
+zmodule completion
 
 zmodule Aloxaf/fzf-tab
 zmodule kiesman99/zim-zoxide
@@ -57,4 +45,3 @@ zmodule zsh-users/zsh-history-substring-search
 # Fish-like autosuggestions for Zsh.
 zmodule zsh-users/zsh-autosuggestions
 # }}} End configuration added by Zim install
-

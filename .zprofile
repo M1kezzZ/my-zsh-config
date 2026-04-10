@@ -1,21 +1,41 @@
 emulate sh
-source ~/.profile
+[ -f "$HOME/.profile" ] && source "$HOME/.profile"
 emulate zsh
 
+if [[ "${LANG:-}" == "C.UTF-8" ]]; then
+  export LANG="en_AU.UTF-8"
+fi
 
-# Setting PATH for Python 3.9
-# The original version is saved in .zprofile.pysave
-PATH="/Library/Frameworks/Python.framework/Versions/3.9/bin:${PATH}"
+if [[ "${LC_CTYPE:-}" == "C.UTF-8" ]]; then
+  export LC_CTYPE="en_AU.UTF-8"
+fi
+
+if [[ "${LC_ALL:-}" == "C.UTF-8" ]]; then
+  unset LC_ALL
+fi
+
+path_prepend_if_exists() {
+  [ -d "$1" ] || return
+  case ":$PATH:" in
+    *":$1:"*) ;;
+    *) PATH="$1:$PATH" ;;
+  esac
+}
+
+if [ -x /opt/homebrew/bin/brew ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -x /usr/local/bin/brew ]; then
+  eval "$(/usr/local/bin/brew shellenv)"
+fi
+
+path_prepend_if_exists "$HOME/Library/Application Support/JetBrains/Toolbox/scripts"
+path_prepend_if_exists "/Applications/Postgres.app/Contents/Versions/latest/bin"
+
+export PYENV_ROOT="${PYENV_ROOT:-$HOME/.pyenv}"
+path_prepend_if_exists "$PYENV_ROOT/bin"
+
 export PATH
 
-  export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles #ckbrew
-  eval $(/opt/homebrew/bin/brew shellenv) #ckbrew
-
-
-
-# Added by Toolbox App
-export PATH="$PATH:/Users/mike/Library/Application Support/JetBrains/Toolbox/scripts"
-# Setting PATH for Python 2.7
-# The original version is saved in .zprofile.pysave
-PATH="/Library/Frameworks/Python.framework/Versions/2.7/bin:${PATH}"
-export PATH
+if command -v pyenv >/dev/null 2>&1; then
+  eval "$(pyenv init --path)"
+fi

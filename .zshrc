@@ -30,6 +30,18 @@ bindkey -e
 # Remove path separator from WORDCHARS.
 WORDCHARS=${WORDCHARS//[\/]}
 
+if [[ "${LANG:-}" == "C.UTF-8" ]]; then
+  export LANG="en_AU.UTF-8"
+fi
+
+if [[ "${LC_CTYPE:-}" == "C.UTF-8" ]]; then
+  export LC_CTYPE="en_AU.UTF-8"
+fi
+
+if [[ "${LC_ALL:-}" == "C.UTF-8" ]]; then
+  unset LC_ALL
+fi
+
 # -----------------
 # Zim configuration
 # -----------------
@@ -94,6 +106,11 @@ ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
 # ------------------
 
 ZIM_HOME=${ZDOTDIR:-${HOME}}/.zim
+
+if [[ -e ${ZDOTDIR:-${HOME}}/.zcompdump.zwc ]]; then
+  chmod u+w ${ZDOTDIR:-${HOME}}/.zcompdump.zwc 2>/dev/null || true
+fi
+
 # Download zimfw plugin manager if missing.
 if [[ ! -e ${ZIM_HOME}/zimfw.zsh ]]; then
   if (( ${+commands[curl]} )); then
@@ -128,97 +145,125 @@ for key ('j') bindkey -M vicmd ${key} history-substring-search-down
 unset key
 # }}} End configuration added by Zim install
 # ----------------------------------------------------------------------------------------------------------------------------------
-export EDITOR=cursor
-eval "$(starship init zsh)"
+path_prepend_if_exists() {
+  [[ -d "$1" ]] || return
+  case ":$PATH:" in
+    *":$1:"*) ;;
+    *) export PATH="$1:$PATH" ;;
+  esac
+}
 
-#export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
-#export CC=/opt/homebrew/opt/llvm/bin/clang  
-#export CXX=/opt/homebrew/opt/llvm/bin/clang++
+command_exists() {
+  (( ${+commands[$1]} ))
+}
 
+export EDITOR="${EDITOR:-cursor}"
+export VISUAL="${VISUAL:-$EDITOR}"
+export PAGER="${PAGER:-less -R}"
+export BAT_THEME="${BAT_THEME:-Visual Studio Dark+}"
 
-alias ld='eza -lDh --icons'
-alias ldt='eza -lh --icons --git --tree --level=3'
-alias lf='eza -lfh --icons --git'
-alias lh='eza -dlh .* --icons --git --group-directories-first'
-alias la='eza -alh --icons --git --sort=size --group-directories-first'
-alias ls='eza -lh --icons --git --color=always --sort=size --group-directories-first'
-alias lt='eza -alh --icons --git --sort=modified'
-
-alias lg='lazygit'
-
-alias v='nvim'
-alias vim='nvim'
-alias nv='neovide --title-hidden'
-alias nvide='neovide --title-hidden'
-
-
-#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
-export SDKMAN_DIR="$HOME/.sdkman"
-[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
-
-# alias vim="lvim"
-
-
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/opt/anaconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/opt/anaconda3/etc/profile.d/conda.sh" ]; then
-        . "/opt/anaconda3/etc/profile.d/conda.sh"
-    else
-        export PATH="/opt/anaconda3/bin:$PATH"
-    fi
+if command_exists starship; then
+  eval "$(starship init zsh)"
 fi
-unset __conda_setup
-# <<< conda initialize <<<
-conda config --set auto_activate_base false
 
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-if command -v pyenv 1>/dev/null 2>&1; then
-  eval "$(pyenv init --path)"
-  eval "$(pyenv init -)"
+if command_exists eza; then
+  alias ld='eza -lDh --icons'
+  alias ldt='eza -lh --icons --git --tree --level=3'
+  alias lf='eza -lfh --icons --git'
+  alias lh='eza -dlh .* --icons --git --group-directories-first'
+  alias la='eza -alh --icons --git --sort=size --group-directories-first'
+  alias ls='eza -lh --icons --git --color=always --sort=size --group-directories-first'
+  alias lt='eza -alh --icons --git --sort=modified'
 fi
-# export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH"
-export PATH="/Applications/Postgres.app/Contents/Versions/latest/bin:$PATH"
 
+command_exists lazygit && alias lg='lazygit'
+command_exists nvim && alias v='nvim'
+command_exists nvim && alias vim='nvim'
+command_exists neovide && alias nv='neovide --title-hidden'
+command_exists neovide && alias nvide='neovide --title-hidden'
+command_exists fastfetch && alias ff='fastfetch'
+alias reload-shell='exec zsh'
+
+if [[ -d "$HOME/.sdkman" ]]; then
+  export SDKMAN_DIR="$HOME/.sdkman"
+  [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+fi
+
+export PYENV_ROOT="${PYENV_ROOT:-$HOME/.pyenv}"
+path_prepend_if_exists "$PYENV_ROOT/bin"
+if command_exists pyenv; then
+  eval "$(pyenv init - zsh)"
+fi
+
+for conda_root in "$HOME/miniconda3" "$HOME/anaconda3" "/opt/miniconda3" "/opt/anaconda3"; do
+  if [[ -d "$conda_root" ]]; then
+    export CONDA_ROOT="$conda_root"
+    break
+  fi
+done
+unset conda_root
+
+if [[ -n "${CONDA_ROOT:-}" ]]; then
+  export CONDA_AUTO_ACTIVATE_BASE=false
+  path_prepend_if_exists "$CONDA_ROOT/condabin"
+  if [[ -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]]; then
+    conda() {
+      unset -f conda
+      source "$CONDA_ROOT/etc/profile.d/conda.sh"
+      conda "$@"
+    }
+  fi
+fi
 
 bindkey '^p' history-substring-search-up
 bindkey '^n' history-substring-search-down
 
-# eza configuration (no need for zimfw)
-# export FPATH="~/eza/completions/zsh:$FPATH"
+if command_exists fd; then
+  export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+  export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+fi
+
+if command_exists bat; then
+  export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers --line-range=:200 {}'"
+fi
+
+if command_exists brew && command_exists fzf && [[ -t 0 ]] && [[ -t 1 ]]; then
+  FZF_BASE="$(brew --prefix fzf 2>/dev/null)"
+  if [[ -f "$FZF_BASE/shell/key-bindings.zsh" ]]; then
+    source "$FZF_BASE/shell/key-bindings.zsh"
+  fi
+  unset FZF_BASE
+fi
+
+if command_exists direnv; then
+  eval "$(direnv hook zsh)"
+fi
+
+if command_exists atuin; then
+  eval "$(atuin init zsh --disable-up-arrow)"
+fi
 
 # fzf-tab configuration
-# disable sort when completing `git checkout`
 zstyle ':completion:*:git-checkout:*' sort false
-# set descriptions format to enable group support
-# NOTE: don't use escape sequences here, fzf-tab will ignore them
 zstyle -d ':completion:*' format
 zstyle ':completion:*:descriptions' format '[%d]'
-# set list-colors to enable filename colorizing
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-# force zsh not to show completion menu, which allows fzf-tab to capture the unambiguous prefix
 zstyle ':completion:*' menu no
-# preview directory's content with eza when completing cd
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always --icons $realpath'
-# switch group using `<` and `>`
 zstyle ':fzf-tab:*' switch-group '<' '>'
 
-# yazi configuration
-function yy() {
-	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
-	yazi "$@" --cwd-file="$tmp"
-	if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
-		cd -- "$cwd"
-	fi
-	rm -f -- "$tmp"
+yy() {
+  command_exists yazi || return 127
+  local tmp cwd
+  tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+  yazi "$@" --cwd-file="$tmp"
+  if cwd="$(cat -- "$tmp")" && [[ -n "$cwd" && "$cwd" != "$PWD" ]]; then
+    cd -- "$cwd"
+  fi
+  rm -f -- "$tmp"
 }
-export PYENV_ROOT="$HOME/.pyenv"
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init - zsh)"
 
-# OpenClaw Completion
-source "/Users/mike/.openclaw/completions/openclaw.zsh"
+if [[ -r "$HOME/.openclaw/completions/openclaw.zsh" ]]; then
+  source "$HOME/.openclaw/completions/openclaw.zsh"
+fi

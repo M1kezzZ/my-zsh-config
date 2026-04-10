@@ -128,35 +128,61 @@ for key ('j') bindkey -M vicmd ${key} history-substring-search-down
 unset key
 # }}} End configuration added by Zim install
 # ----------------------------------------------------------------------------------------------------------------------------------
-export EDITOR=nvim
+export EDITOR=cursor
 eval "$(starship init zsh)"
 
-# alias ls='eza --color=always --group-directories-first --icons'
-# alias ll='eza -la --icons --octal-permissions --group-directories-first'
-# alias l='eza -bGF --header --git --color=always --group-directories-first --icons'
-# alias llm='eza -lbGd --header --git --sort=modified --color=always --group-directories-first --icons' 
-# alias la='eza --long --all --group --group-directories-first'
-# alias lx='eza -lbhHigUmuSa@ --time-style=long-iso --git --color-scale --color=always --group-directories-first --icons'
+#export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+#export CC=/opt/homebrew/opt/llvm/bin/clang  
+#export CXX=/opt/homebrew/opt/llvm/bin/clang++
 
-# alias lS='eza -1 --color=always --group-directories-first --icons'
-# alias lt='eza --tree --level=2 --color=always --group-directories-first --icons'
-# alias lh="eza -a | grep -E '^\.'"
 
 alias ld='eza -lDh --icons'
 alias ldt='eza -lh --icons --git --tree --level=3'
 alias lf='eza -lfh --icons --git'
 alias lh='eza -dlh .* --icons --git --group-directories-first'
-alias ll='eza -alh --icons --git --group-directories-first'
-alias ls='eza -alh --icons --git --color=always --sort=size --group-directories-first'
+alias la='eza -alh --icons --git --sort=size --group-directories-first'
+alias ls='eza -lh --icons --git --color=always --sort=size --group-directories-first'
 alias lt='eza -alh --icons --git --sort=modified'
 
 alias lg='lazygit'
 
 alias v='nvim'
 alias vim='nvim'
-alias nv='neonvide'
-alias nvide='neovide'
+alias nv='neovide --title-hidden'
+alias nvide='neovide --title-hidden'
 
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+# alias vim="lvim"
+
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/opt/anaconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/opt/anaconda3/etc/profile.d/conda.sh" ]; then
+        . "/opt/anaconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="/opt/anaconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+conda config --set auto_activate_base false
+
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+if command -v pyenv 1>/dev/null 2>&1; then
+  eval "$(pyenv init --path)"
+  eval "$(pyenv init -)"
+fi
+# export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH"
+export PATH="/Applications/Postgres.app/Contents/Versions/latest/bin:$PATH"
 
 
 bindkey '^p' history-substring-search-up
@@ -190,3 +216,9 @@ function yy() {
 	fi
 	rm -f -- "$tmp"
 }
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init - zsh)"
+
+# OpenClaw Completion
+source "/Users/mike/.openclaw/completions/openclaw.zsh"

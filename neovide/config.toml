@@ -1,8 +1,12 @@
+title_hidden = true
+frame = "transparent"
 
-frame="buttonless"
 
 [font]
-    normal = { family = "Maple Mono NF CN", style = "Italic" }
-    size = 16
+   normal = { family = "Maple Mono NF CN"}
+   # Bold = { family = "Maple Mono NF CN", style = "Bold" }
+   # Italic = { family = "Maple Mono NF CN", style = "Italic" }
+   # bold_italic = { family = "Maple Mono NF CN", style = "Bold Italic" }
+   size = 16
 
 

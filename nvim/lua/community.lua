@@ -7,8 +7,8 @@
 return {
   "AstroNvim/astrocommunity",
   { import = "astrocommunity.pack.lua" },
-  { import = "astrocommunity.colorscheme.catppuccin" },
   { import="astrocommunity.editing-support.rainbow-delimiters-nvim"},
-  { import="astrocommunity.utility.noice-nvim"}
+  { import="astrocommunity.utility.noice-nvim"},
+  { import = "astrocommunity.recipes.vscode" },
 
 }
